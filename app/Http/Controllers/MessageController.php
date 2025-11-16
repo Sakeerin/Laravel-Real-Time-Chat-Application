@@ -44,6 +44,7 @@ class MessageController extends Controller
     }
 
     public function loadOlder(Message $message){
+        // load older message
         if($message->group_id){
             $messages = Message::where('created_at','<', $message->created_at)
                 ->where('group_id', $message->group_id)
