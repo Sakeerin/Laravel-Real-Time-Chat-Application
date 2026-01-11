@@ -43,6 +43,11 @@ class Group extends Model
         return $query->get();
     }
 
+    public function lastMessage()
+    {
+        return $this->belongsTo(Message::class, 'last_message_id');
+    }
+
     public function toConversationArray(): array
     {
         return [

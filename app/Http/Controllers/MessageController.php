@@ -114,8 +114,55 @@ class MessageController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }   
 
+        $group = null;
+        $conversation = null;
+
+        // Check if the message is the group message
+        if($message->group_id){
+            $group = Group::where('last_message_id', $message->id)->first();
+            // if($group){
+            //     $prevMessage = Message::where('group_id', $group->id)
+            //                         ->where('id', '!=', $message->id)
+            //                         ->latest()
+            //                         ->limit(1)
+            //                         ->first();
+            //     if($prevMessage){
+            //         $group->last_message_id = $prevMessage->id;
+            //         $group->save();
+            //     }
+                
+            // }
+        }else{
+            $conversation = Conversation::where('last_message_id', $message->id)->first();
+            // if($conversation){      
+            //     $prevMessage = Message::where(function($query) use ($message){
+            //         $query->where('sender_id', $message->sender_id)
+            //               ->where('receiver_id', $message->receiver_id)
+            //               ->orWhere('sender_id', $message->receiver_id)
+            //               ->where('receiver_id', $message->sender_id);
+            //     })
+            //         ->where('id', '!=', $message->id)   
+            //         ->latest()
+            //         ->limit(1)
+            //         ->first();
+            //     if($prevMessage){
+            //         $conversation->last_message_id = $prevMessage->id;
+            //         $conversation->save();      
+            //     }
+            // }
+        }
+
         $message->delete();
 
-        return response('', 204);
+        if($group){
+            // Repopulate $group with Lates database data
+            $group = Group::find($group->id);
+            $lastMessage = $group->lastMessage();
+        }else if($conversation){
+            $conversation = Conversation::find($conversation->id);
+            $lastMessage = $conversation->lastMessage();
+        }
+
+        return response()->json(['message' => $lastMessage  ? new MessageResource($lastMessage) : null], 200);
     }
 }
